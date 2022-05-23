@@ -51,8 +51,17 @@ export default function selectDate(
         new DateObject(focused).toFirstOfWeek(),
         new DateObject(focused).toLastOfWeek(),
       ];
-    if (selectedDate.length === 2 || selectedDate.length === 0)
+    if (selectedDate.length === 0)
       return [focused];
+    if (selectedDate.length === 2) {
+      const isWithinRange = focused?.isValid && focused?.unix <= selectedDate[1]?.unix && focused?.unix >= selectedDate[0]?.unix;
+      if (isWithinRange) {
+        if (focused?.unix == selectedDate[1]?.unix)
+          return [selectedDate[1], selectedDate[1]];
+        return [selectedDate[0], focused];
+      }
+      return [focused];
+    }
     if (selectedDate.length === 1)
       return [selectedDate[0], focused].sort((a, b) => a - b);
   }

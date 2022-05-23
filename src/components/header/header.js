@@ -91,7 +91,7 @@ export default function Header({
                   }
                 >
                   {month}
-                  {!hideYear && (isRTL ? "،" : ",")}
+                  {!hideYear && (isRTL ? "،" : "")}
                 </span>
               )}
               {!hideYear && (

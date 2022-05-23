@@ -70,8 +70,9 @@ export default function DayPicker({
             key={monthIndex}
             style={{
               [isRTL ? "marginLeft" : "marginRight"]:
-                monthIndex + (fullYear ? 0 : 1) < numberOfMonths ? "10px" : "",
+                monthIndex + (fullYear ? 0 : 1) < numberOfMonths ? "" : "",
             }}
+            className={`rmdp-day-picker-${monthIndex % 2 === 0 ? "leftPanel" : "rightPanel"}`}
           >
             {fullYear && (
               <div className="rmdp-month-name">{monthNames[monthIndex]}</div>
@@ -117,7 +118,26 @@ export default function DayPicker({
                   if (object.hidden || object.disabled)
                     className = className.replace("sd", "");
 
-                  return (
+                  
+                  return (parentClassName.includes('rmdp-range start') || parentClassName.includes('rmdp-range end')) ? (
+                    <div className={parentClassName+'-container'} key={i}>
+                      <div
+                        className={parentClassName}
+                        onClick={() => {
+                          if (!mustDisplayDay(object) || object.disabled) return;
+
+                          selectDay(object, monthIndex, numberOfMonths);
+                        }}
+                      >
+                        <span className={className} {...allProps}>
+                          {mustDisplayDay(object) && !object.hidden
+                            ? children ?? object.day
+                            : ""}
+                        </span>
+                      </div>
+                      <div className={parentClassName+'-background'}></div>
+                    </div>
+                  ) : (
                     <div
                       key={i}
                       className={parentClassName}
@@ -180,7 +200,7 @@ export default function DayPicker({
     }
 
     [selectedDate, focused] = selectDate(dateObject, sort, state);
-
+    
     onChange(selectedDate, {
       ...state,
       date,

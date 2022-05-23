@@ -82,7 +82,7 @@ function DatePicker(
     inputRef = useRef(),
     calendarRef = useRef(),
     ref = useRef({}),
-    separator = range || weekPicker ? " ~ " : ", ",
+    separator = range || weekPicker ? " - " : ", ",
     datePickerProps = arguments[0],
     isMobileMode = isMobile(),
     closeCalendar = useCallback(() => {
@@ -218,6 +218,7 @@ function DatePicker(
       setTemporaryDate(date);
     } else {
       setDate(date);
+      console.log('date in useEffect', date);
     }
   }, [
     value,
@@ -265,7 +266,7 @@ function DatePicker(
     datePickerRef.current.refreshPosition();
   }, [stringDate]);
 
-  if (multiple || range || isArray(date) || !editable) inputMode = "none";
+  if (multiple || isArray(date) || !editable) inputMode = "none";
 
   return (
     <ElementPopper
@@ -355,7 +356,7 @@ function DatePicker(
           style={style}
           autoComplete="off"
           disabled={disabled ? true : false}
-          inputMode={inputMode || (isMobileMode ? "none" : undefined)}
+          // inputMode={inputMode || (isMobileMode ? "none" : undefined)}
           readOnly={readOnly}
         />
       );
@@ -363,6 +364,7 @@ function DatePicker(
   }
 
   function renderCalendar() {
+    console.log('date in renderCalendar', date);
     return (
       <Calendar
         ref={calendarRef}
@@ -505,6 +507,7 @@ function DatePicker(
     if (isMobileMode && !force) return setTemporaryDate(date);
 
     setDate(date);
+    console.log('date in handleChange', date);
 
     ref.current = { ...ref.current, date };
 
@@ -514,17 +517,40 @@ function DatePicker(
   }
 
   function handleValueChange(e) {
-    if (isArray(date) || !editable) return;
+    console.log('handleValueChange', e.target);
+    if (!editable) return;
+
+    let value = e.target.value;
 
     ref.current.selection = e.target.selectionStart;
 
-    let value = e.target.value,
-      object = {
+    let object = {
         calendar,
         locale,
         format,
         ignoreList: JSON.parse(formattingIgnoreList),
       };
+
+    if (range) {
+      setStringDate(value);
+      const inputtedDates = value.split(' - ');
+
+      if (isDate(inputtedDates[0])) {
+        const dateRangeStart = new DateObject({
+          ...object,
+          date: inputtedDates[0]
+        });
+        handleChange(dateRangeStart.isValid ? dateRangeStart : null);
+      }
+      if (isDate(inputtedDates[1]) && new Date(inputtedDates[1]) > new Date(inputtedDates[0])) {
+        const dateRangeEnd = new DateObject({
+          ...object,
+          date: inputtedDates[1]
+        });
+        handleChange(dateRangeEnd.isValid ? dateRangeEnd : null);
+      }
+      return;
+    }
 
     digits = isArray(digits) ? digits : locale.digits;
 
@@ -617,4 +643,8 @@ function getInput(inputRef) {
   return inputRef.current.tagName === "INPUT"
     ? inputRef.current
     : inputRef.current.querySelector("input");
+}
+
+function isDate(date) {
+  return (new Date(date) !== "Invalid Date") && !isNaN(new Date(date));
 }
